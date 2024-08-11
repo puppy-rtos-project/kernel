@@ -87,6 +87,8 @@ typedef void *pthread_addr_t;
 #  define __PTHREAD_ADDR_T_DEFINED 1
 #endif
 
+typedef int cpu_set_t;
+
 typedef pthread_addr_t (*pthread_startroutine_t)(pthread_addr_t);
 typedef pthread_startroutine_t pthread_func_t;
 
@@ -103,7 +105,7 @@ struct pthread_attr_s
   uint8_t max_repl;            /* Maximum pending replenishments */
 #endif
 
-#ifdef CONFIG_SMP
+#if P_CPU_NR > 1
   cpu_set_t affinity;          /* Set of permitted CPUs for the thread */
 #endif
 

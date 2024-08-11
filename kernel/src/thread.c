@@ -38,7 +38,7 @@ void p_thread_entry(void (*entry)(void *parameter), void *param)
 static void _p_thread_cleanup(p_obj_t obj)
 {
     struct _thread_obj *thread = obj;
-    p_free(thread->stack_addr);
+    // p_free(thread->stack_addr);
     p_obj_deinit(thread);
 }
 void p_thread_init(p_obj_t obj, const char *name,

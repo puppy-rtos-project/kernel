@@ -14,11 +14,18 @@
 #include <puppy/posix/pthread.h>
 #include <string.h>
 
+#define KLOG_TAG  "pthread"
+#define KLOG_LVL   KLOG_WARNING
+#include <puppy/klog.h>
+
 const pthread_attr_t pthread_default_attr =
 {
     P_SCHED_PRIO_DEFAULT,
     0, 0,     
     PTHREAD_CREATE_JOINABLE,    /* detach state */
+#if P_CPU_NR > 1
+    CPU_NA,
+#endif
     0,
     P_CONFIG_PTHREAD_STACK_DEFAULT, 
 };
@@ -48,11 +55,15 @@ struct _pthread_data
 };
 typedef struct _pthread_data _pthread_data_t;
 
-pthread_t _pthread_data_create(void)
+pthread_t _pthread_data_create(const pthread_attr_t *attr)
 {
     _pthread_data_t *ptd = NULL;
 
-    ptd = (_pthread_data_t*)p_malloc(sizeof(_pthread_data_t));
+    KLOG_ASSERT(attr->stackaddr != NULL);
+    // create pthread date from stack top.
+    KLOG_D("ptd attr.stackaddr:0x%x, size:%d", attr->stackaddr, attr->stacksize);
+    ptd = (_pthread_data_t*)P_ALIGN_DOWN((p_ubase_t)(attr->stackaddr + (attr->stacksize - sizeof(_pthread_data_t))) , P_ALIGN_SIZE);
+    KLOG_D("ptd created at addr:0x%x", ptd);
     if (!ptd) return NULL;
 
     memset(ptd, 0x0, sizeof(_pthread_data_t));
@@ -64,7 +75,7 @@ pthread_t _pthread_data_create(void)
 }
 void _pthread_data_destroy(_pthread_data_t *ptd)
 {
-    p_free(ptd);
+    // p_free(ptd);
 }
 
 static void _pthread_cleanup(p_obj_t obj)
@@ -77,6 +88,11 @@ static void _pthread_cleanup(p_obj_t obj)
 int pthread_attr_init(pthread_attr_t *attr)
 {
     *attr = pthread_default_attr;
+    return 0;
+}
+int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stackaddr)
+{
+    attr->stackaddr = stackaddr;
     return 0;
 }
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize)
@@ -119,9 +135,9 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 {
     int ret = 0;
     _pthread_data_t *ptd;
-    void *stack;
+    void *stack = NULL;
     /* allocate posix thread data */
-    ptd = _pthread_data_create();
+    ptd = _pthread_data_create(attr);
     if (ptd == NULL)
     {
         ret = -P_ENOMEM;
@@ -148,7 +164,8 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
     /* stack */
     if (ptd->attr.stackaddr == 0)
     {
-        stack = (void *)p_malloc(ptd->attr.stacksize);
+        // stack = (void *)p_malloc(ptd->attr.stacksize);
+        KLOG_E("attr.stackaddr must be set!");
         if (stack == NULL)
         {
             ret = -P_ENOMEM;
@@ -163,7 +180,7 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
     }
     /* initial this pthread to system */
     p_thread_init(&ptd->tid, "pth", (void (*)(void *))start_routine, arg,
-                       stack, ptd->attr.stacksize,
+                       stack, ptd->attr.stacksize - P_ALIGN(sizeof(_pthread_data_t), P_ALIGN_SIZE),
                        ptd->attr.priority, CPU_NA);
     ptd->tid.cleanup = _pthread_cleanup;
     if(thread) *thread = ptd;
@@ -213,7 +230,7 @@ int pthread_join(pthread_t thread, void **value)
 
         if (ptd->alloc_stack)
         {
-            p_free(ptd->alloc_stack);
+            // p_free(ptd->alloc_stack);
         }
         p_obj_deinit(&ptd->tid);
         p_obj_deinit(&ptd->joinable_sem);

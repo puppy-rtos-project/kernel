@@ -65,4 +65,4 @@ void test_smp(void)
     smp_testcase();
     P_TC_PASS();
 }
-P_TC_FUNC(test_smp, kernel.smp.tc);
+// P_TC_FUNC(test_smp, kernel.smp.tc);

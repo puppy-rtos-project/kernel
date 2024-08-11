@@ -27,6 +27,8 @@ static void *a_thread_func()
     return NULL;
 }
 
+char *pth_stack[4096];
+
 static int posix_testcase(void)
 {
     pthread_t new_th;
@@ -34,7 +36,11 @@ static int posix_testcase(void)
     end_exec = 0;
 
     /* Create a new thread. */
-    if (pthread_create(&new_th, NULL, a_thread_func, NULL) != 0) {
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstackaddr(&attr, pth_stack);
+    pthread_attr_setstacksize(&attr, 4096);
+    if (pthread_create(&new_th, &attr, a_thread_func, NULL) != 0) {
         printk("Error creating thread\n");
         return -2;
     }

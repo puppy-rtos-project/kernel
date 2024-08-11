@@ -63,6 +63,7 @@ p_weak void p_subcpu_start(void)
     ;
 }
 
+// #include <puppy/posix/pthread.h>
 void puppy_init(void)
 {
     puppy_board_init();
@@ -71,6 +72,14 @@ void puppy_init(void)
     _init_fn_run();
     for (uint8_t i = 0; i < P_CPU_NR; i++)
     {
+        // pthread_attr_t attr;
+        // pthread_attr_init(&attr);
+        // attr.priority = P_THREAD_PRIO_MAX;
+        // attr.affinity = 
+        // pthread_attr_setstackaddr(&attr, _idle_thread_stack[i]);
+        // pthread_attr_setstacksize(&attr, P_IDLE_THREAD_STACK_SIZE);
+        // pthread_create(NULL, &attr, idle_thread_entry, NULL);
+
         p_thread_init(&_idle[i], "idle", idle_thread_entry, NULL,
                     _idle_thread_stack[i], P_IDLE_THREAD_STACK_SIZE,
                     P_THREAD_PRIO_MAX, i);

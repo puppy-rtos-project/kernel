@@ -43,13 +43,23 @@ static void *t2_thread_entry(void *parm)
     pthread_exit(0);
 }
 
+char *pth1_stack[4096];
+char *pth2_stack[4096];
+
 void test_sem_api(void)
 {
     pthread_t th1, th2;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 4096);
+
     _g_cnt = 0;
     p_sem_init(&sem, "sem", 0, 1);
-    pthread_create(&th1, NULL, t1_thread_entry, NULL);
-    pthread_create(&th2, NULL, t2_thread_entry, NULL);
+    pthread_attr_setstackaddr(&attr, pth1_stack);
+    pthread_create(&th1, &attr, t1_thread_entry, NULL);
+
+    pthread_attr_setstackaddr(&attr, pth2_stack);
+    pthread_create(&th2, &attr, t2_thread_entry, NULL);
     pthread_join(th1, NULL);
     pthread_join(th2, NULL);
 

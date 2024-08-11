@@ -47,11 +47,14 @@ void *shell_thread_entry(void *parm)
         }
     }
 }
+char *shell_stack[4096];
+
 static void shell_init_fn(void)
 {
    pthread_attr_t attr;
    pthread_attr_init(&attr);
-   pthread_attr_setstacksize(&attr, 2048);
+   pthread_attr_setstackaddr(&attr, shell_stack);
+   pthread_attr_setstacksize(&attr, 4096);
    pthread_create(NULL, &attr, shell_thread_entry, NULL);
 }
 P_INIT_FUNC(shell_init_fn);
