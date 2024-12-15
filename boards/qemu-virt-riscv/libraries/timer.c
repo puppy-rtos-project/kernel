@@ -1,4 +1,4 @@
-#include "puppy.h"
+#include "puppy_core.h"
 #include "platform.h"
 #include "riscv.h"
 
@@ -46,5 +46,5 @@ void timer_handler()
 {
     uint32_t inc = 0;
     inc = timer_load(TIMER_INTERVAL);
-    p_tick_inc(1, inc);
+    // p_tick_inc(1, inc);
 }

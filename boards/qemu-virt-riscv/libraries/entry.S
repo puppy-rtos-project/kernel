@@ -125,11 +125,7 @@ save_mpie:
 	lw a1, (a0)
 	csrrw	a1, mscratch, a1  # swap to thread
 
-    mv t0, a1
-	call arch_get_from_sp
-	sw t0, (a0)
-	call p_sched_swap_out_cb
-    call p_sched_swap_in_cb
+    call pup_sched_swap_done_cb
 
 exit:
 	csrrw	sp, mscratch, sp	# swap t6 and mscratch

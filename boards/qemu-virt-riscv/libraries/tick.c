@@ -8,7 +8,7 @@
  * 2018/10/28     Bernard      The unify RISC-V porting code.
  */
 
-#include <puppy.h>
+#include <puppy_core.h>
 
 // #include <encoding.h>
 // #include "sbi.h"

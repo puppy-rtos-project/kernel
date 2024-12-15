@@ -1,16 +1,16 @@
 
-#include <puppy.h>
+#include <puppy_core.h>
 #include "drv_uart.h"
 
 #define KLOG_TAG  "drv.board"
 #define KLOG_LVL   KLOG_INFO
-#include <puppy/klog.h>
+#include <puppy_klog.h>
 
 /* USER CODE BEGIN PFP */
 char heap_buf[50*1024];
-p_rb_t cons_rb;
+pup_rb_t cons_rb;
 char buf[128];
-static struct _sem_obj cons_sem;
+static sem_t cons_sem;
 
 int _cons_init(void)
 {
@@ -18,26 +18,26 @@ int _cons_init(void)
     if (!_inited)
     {
         _inited = 1;
-        p_rb_init(&cons_rb, buf, 128);
+        pup_rb_init(&cons_rb, buf, 128);
         uart_init();
     }
 }
 
-int p_hw_cons_getc(void)
+int pup_hw_cons_getc(void)
 {
     int ch = -1;
     _cons_init();
 
 __retry:
-    if (p_rb_read(&cons_rb, &ch, 1) == false)
+    if (pup_rb_read(&cons_rb, &ch, 1) == false)
     {
-        p_sem_wait(&cons_sem);
+        sem_wait(&cons_sem);
         goto __retry;
     }
     return ch;
 }
 
-int p_hw_cons_output(const char *str, int len)
+int pup_hw_cons_output(const char *str, int len)
 {
     size_t i;
 
@@ -56,8 +56,8 @@ void uart_isr(void)
     ch = uart_getc();
     if (ch != -1)
     {
-        p_rb_write(&cons_rb, &ch, 1);
-        p_sem_post(&cons_sem);
+        pup_rb_write(&cons_rb, &ch, 1);
+        sem_post(&cons_sem);
     }
 }
 
@@ -67,8 +67,8 @@ int puppy_board_init(void)
     trap_init();
     plic_init();
     timer_init();
-    p_tick_init(100, 10);
-    p_sem_init(&cons_sem, "cons_sem", 0, 1);
+    // p_tick_init(100, 10);
+    sem_init(&cons_sem, 0, 0);
     // p_system_heap_init(heap_buf, sizeof(heap_buf));
 
     return 0;
@@ -77,11 +77,11 @@ int puppy_board_init(void)
 /**
  * smp support
 */
-#if P_CPU_NR > 1
+#if PUP_CPU_NR > 1
 #include <platform.h>
 #include <riscv.h>
 
-volatile p_base_t _g_subcpu_start_flag = 0;
+volatile pup_base_t _g_subcpu_start_flag = 0;
 
 uint8_t p_cpu_self_id()
 {

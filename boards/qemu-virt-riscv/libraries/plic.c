@@ -1,4 +1,4 @@
-#include "puppy.h"
+#include "puppy_core.h"
 #include "platform.h"
 #include "riscv.h"
 #define UART0_IRQ 10

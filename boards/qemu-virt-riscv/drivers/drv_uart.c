@@ -7,14 +7,14 @@
  * Date           Author       Notes
  */
 
-#include <puppy.h>
+#include <puppy_core.h>
 #include "drv_uart.h"
 
 #include <stdio.h>
 
 struct device_uart
 {
-    p_ubase_t hw_base;
+    pup_ubase_t hw_base;
     uint32_t irqno;
 };
 
@@ -23,7 +23,7 @@ struct device_uart uart0;
 
 void uart_init(void)
 {
-    uart0.hw_base = (p_ubase_t)uart0_base;
+    uart0.hw_base = (pup_ubase_t)uart0_base;
     uart0.irqno = 0x0a;
     uint32_t div = UART_REFERENCE_CLOCK / (UART_DEFAULT_BAUDRATE * 16);
 
